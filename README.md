@@ -25,8 +25,6 @@ iptables -A INPUT -p tcp --dport 59736 -j REJECT
 
 ## 💬 社区交流
 
-##### 微信交流群
-
 ##### QQ交流群
 
 加QQ群号 684772704, 验证信息: luojiawaf
