@@ -1,4 +1,2 @@
-echo "delete frobidden" >> /luojia/logs/aa.log
-echo $1 >> /luojia/logs/aa.log
+echo "del luojia" $1 >> /luojia/logs/frobidden.log
 ipset del luojia $1
-echo `date` >> /luojia/logs/aa.log

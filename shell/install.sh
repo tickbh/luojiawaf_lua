@@ -1,5 +1,6 @@
 
-cp ./sources.list /etc/apt/sources.list
+# cp ./sources.list /etc/apt/sources.list
+# apt-get update
 
 # RESTY_DEB_FLAVOR build argument is used to select other
 # OpenResty Debian package variants.
@@ -19,8 +20,7 @@ resty_deb_flavor="${RESTY_DEB_FLAVOR}"
 resty_deb_version="${RESTY_DEB_VERSION}"
 
 
-DEBIAN_FRONTEND=noninteractive apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+DEBIAN_FRONTEND=DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         ca-certificates \
         gettext-base \
         gnupg2 \
