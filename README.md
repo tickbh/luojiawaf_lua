@@ -17,6 +17,7 @@ iptables -I INPUT -m set --match-set luojia src -p tcp -j REJECT
 
 iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+iptables -A INPUT -p tcp --dport 59736 -s 127.0.0.1 -j ACCEPT
 #对指定IP(后端服务器)放行redis的端口, 配置防火墙, 保证安全, 非白名单IP直接封禁
 iptables -A INPUT -p tcp --dport 59736 -s xx.xx.xx.xx -j ACCEPT
 iptables -A INPUT -p tcp --dport 59736 -j REJECT

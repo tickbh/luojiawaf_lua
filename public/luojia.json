@@ -1,7 +1,6 @@
 {
     "redis": {
-        "host1": "127.0.0.1",
-        "host": "192.168.1.9",
+        "host": "127.0.0.1",
         "port": 59736,
         "password": "luojia59736LUOJIA"
     },
