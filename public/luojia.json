@@ -1,8 +1,9 @@
 {
     "redis": {
-        "host": "127.0.0.1",
+        "host1": "127.0.0.1",
+        "host": "192.168.1.9",
         "port": 59736,
-        "password": "wmwaf59736WMWAF"
+        "password": "luojia59736LUOJIA"
     },
     "fw_fb": "/luojia/public/forbidden.sh",
     "fw_del_fb": "/luojia/public/del_forbidden.sh"

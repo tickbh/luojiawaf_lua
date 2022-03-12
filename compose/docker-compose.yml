@@ -1,0 +1,53 @@
+version: '3.7'
+services:
+  # redis_db:
+  #   image: redis
+  #   container_name: redis-docker
+  #   volumes:
+  #     - ./store/redis/:/data:rw
+  #     - ./redis.conf:/usr/local/etc/redis/redis.conf
+  #     - ./store/redis/logs:/logs:rw
+  #   expose:
+  #     - "6379"
+  redis_db:
+    image: redis
+    container_name: redis-docker
+    command: redis-server /etc/redis/redis.conf
+    volumes:
+      - ./store/redis/:/data:rw
+      - ./../shell/redis/redis.conf:/etc/redis/redis.conf
+      - ./store/redis/logs:/logs:rw
+    ports:
+      - "59736:59736"
+
+  waf_server:
+    container_name: waf_server-docker        # 指定容器的名称
+    build:
+      context: ../
+      dockerfile: compose/waf/Dockerfile
+    command: 
+      - sh
+      - -c
+      - |
+        /usr/local/openresty/nginx/sbin/nginx
+        /bin/bash -c " while true; do sleep 1; done"
+    environment:
+        TZ : 'Asia/Shanghai'
+    volumes:
+      - ../:/luojia:rw
+      - ./luojia.json:/etc/luojia.json:rw
+      - ../nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:rw
+    ports:
+      - mode: host
+        protocol: tcp
+        published: 80
+        target: 80
+      - mode: host
+        protocol: tcp
+        published: 443
+        target: 443
+
+networks:
+  default:
+    external:
+      name: my-server-network

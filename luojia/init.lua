@@ -5,7 +5,10 @@ require 'lib'
 
 local function init_config()
     local cjson = require("cjson")
-    local read_config = assert(io.open(CONFIG_PUBLIC..'/user.json',"r"))
+    local read_config = io.open('/etc/luojia.json',"r")
+    if not read_config then
+        read_config = assert(io.open(CONFIG_PUBLIC..'/luojia.json',"r"))
+    end
 	local raw_config_info = read_config:read('*all')
     read_config:close()
 	local config_info = cjson.decode(raw_config_info)
@@ -31,6 +34,8 @@ local function check_upstream_addr(red)
             hosts[host][ip..":"..port] = infos
         end
     end
+
+    ngx.log(ngx.ERR, "check_upstream_addr === ", cjson.encode(hosts))
 
     for host, data in pairs(hosts) do
         ngx.shared.cache_dict:set(GET_UPSTREAM_CACHE_KEY(host), cjson.encode(data))
@@ -121,6 +126,8 @@ local function do_timer()
     sync_all_records_ips(red)
     sync_all_ip_changes(red)
     read_ssl_from_redis(red)
+    ngx.log(ngx.ERR, "redis ping result ", red:ping(), " worker id:", ngx.worker.id())
+    
 end
 
 ngx.timer.every(15, do_timer)

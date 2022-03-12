@@ -423,6 +423,7 @@ end
 
 function GET_REDIS_CLIENT()
     local redis = require "redis.redis_helper"
+    ngx.log(ngx.ERR, "redis host ", GLOBAL_CONFIG_INFO["redis"]["host"])
     return redis:new(GLOBAL_CONFIG_INFO["redis"])
 end
 
