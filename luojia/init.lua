@@ -116,7 +116,6 @@ local function statistics_system_info(red)
     shell_cmd[2] = "3"
 
     local ok, stdout, stderr, reason, status =  shell.run(table.concat(shell_cmd), nil, 5000, 4069)
-    ngx.log(ngx.ERR,stdout, stderr, reason, status)
     
     if not ok then
         ngx.log(ngx.ERR,stdout, stderr, reason, status)
@@ -127,9 +126,16 @@ local function statistics_system_info(red)
     local now = ngx.now()
     now = now - now % 15
 
-    red:rpush("all_cpu_info", now .. "/" .. ret_table[2] or 0)
-    red:rpush("all_mem_info", now .. "/" .. (ret_table[3] or "") .. "/" .. (ret_table[4] or ""))
-    red:rpush("all_network_info", now .. "/" .. (ret_table[5] or "") .. "/" .. (ret_table[6] or "") .. "/" .. (ret_table[7] or ""))
+    local function _push_to_list(key, value)
+        local len = red:rpush(key, value)
+        if len >= 9999 then
+            red:ltrim(key, len - 9999, -1)
+        end
+    end
+
+    _push_to_list("all_cpu_info", now .. "/" .. ret_table[2] or 0)
+    _push_to_list("all_mem_info", now .. "/" .. (ret_table[3] or "") .. "/" .. (ret_table[4] or ""))
+    _push_to_list("all_network_info", now .. "/" .. (ret_table[5] or "") .. "/" .. (ret_table[6] or "") .. "/" .. (ret_table[7] or ""))
 end
 
 local function do_timer()
