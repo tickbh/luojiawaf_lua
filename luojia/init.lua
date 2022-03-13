@@ -1,6 +1,7 @@
 --WAF Action
 require 'config'
 require 'lib'
+local shell = require "resty.shell"
 
 
 local function init_config()
@@ -96,6 +97,7 @@ local function read_ssl_from_redis(red)
     local datas = red:hgetall("all_ssl_infos") or {}
     for i = 1, #datas / 2 do
         local k, v = datas[i * 2 - 1], datas[i * 2]
+        ngx.log(ngx.ERR, "k ===", k, "v ==", v)
         local infos = cjson.decode(v)
         if infos then
             local host, pem, pem_key = infos["host"], infos["pem"], infos["pem_key"]
@@ -107,6 +109,28 @@ local function read_ssl_from_redis(red)
     end
 end
 
+local function statistics_system_info(red)
+    local command = GET_STATIS_COMMAND()
+    local shell_cmd = {}
+    shell_cmd[1] = command .. " "
+    shell_cmd[2] = "3"
+
+    local ok, stdout, stderr, reason, status =  shell.run(table.concat(shell_cmd), nil, 5000, 4069)
+    ngx.log(ngx.ERR,stdout, stderr, reason, status)
+    
+    if not ok then
+        ngx.log(ngx.ERR,stdout, stderr, reason, status)
+        return
+    end
+
+    ret_table = STRING_SPLIT(stdout, " ")
+    local now = ngx.now()
+    now = now - now % 15
+
+    red:rpush("all_cpu_info", now .. "/" .. ret_table[2] or 0)
+    red:rpush("all_mem_info", now .. "/" .. (ret_table[3] or "") .. "/" .. (ret_table[4] or ""))
+    red:rpush("all_network_info", now .. "/" .. (ret_table[5] or "") .. "/" .. (ret_table[6] or "") .. "/" .. (ret_table[7] or ""))
+end
 
 local function do_timer()
     local red = GET_REDIS_CLIENT()
@@ -126,6 +150,7 @@ local function do_timer()
     sync_all_records_ips(red)
     sync_all_ip_changes(red)
     read_ssl_from_redis(red)
+    statistics_system_info(red)
     ngx.log(ngx.ERR, "redis ping result ", red:ping(), " worker id:", ngx.worker.id())
     
 end

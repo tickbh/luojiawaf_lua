@@ -7,6 +7,8 @@ CONFIG_RULE_DIR = "/luojia/luojia/rule-config"
 --rule setting
 CONFIG_PUBLIC = "/luojia/public"
 
+SOURCE_VERSION = "1.0"
+
 --config waf output redirect/html
 CONFIG_WAF_OUTPUT = "html"
 --if config_waf_output ,setting url

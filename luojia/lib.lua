@@ -437,6 +437,10 @@ function GET_FW_DEL_FB_COMMAND()
     return GLOBAL_CONFIG_INFO["fw_del_fb"]
 end
 
+-- firewall forbidden command
+function GET_STATIS_COMMAND()
+    return GLOBAL_CONFIG_INFO["statis"]
+end
 
 function GET_MATCH_STAR_HOST(host)
     if string.match(host,'%d+.%d+.%d+.%d+') == host then
@@ -447,4 +451,12 @@ function GET_MATCH_STAR_HOST(host)
         return "*"
     end
     return "*"..string.sub(host, dot_pos)
+end
+
+function STRING_SPLIT(str, seq)
+    local rt = {}
+    string.gsub(str, '[^'..(seq or " ")..']+', function(w) 
+        table.insert(rt, w) 
+    end)
+    return rt
 end

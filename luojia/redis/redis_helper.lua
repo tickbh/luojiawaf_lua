@@ -101,52 +101,11 @@ local function _connect_mod(redis)
 end
 
 function _M._set_last_updatetime(self, redis)
-    -- ngx.log(ngx.ERR, "!!!!!!!!!!!!!!!!xxxxxxxxxxxx".."now==="..ngx.now())
-    -- redis._last_update_time = ngx.now()
-    -- local last_update_time = rawget(redis, "_last_update_time") or 0
-    -- ngx.log(ngx.ERR, "zzzzzzzzzzzzzzzzzz".."now==="..last_update_time.."fd ===")
-    -- self:push_redis_client(redis)
     redis:set_keepalive(keepalive, pool_size)
 end
 
--- function _M.is_vaild_redis(self, redis)
---     if not redis then
---       ngx.log(ngx.ERR, "??????????????????")
---         return false
---     end
-
---     local last_update_time = rawget(redis, "_last_update_time") or 0
---     local now = ngx.now()
---     if now - last_update_time > timeout then
---       ngx.log(ngx.ERR, "!!!!!!!!!!!!!!!!"..last_update_time.."now==="..now)
---         return false
---     end
---     ngx.log(ngx.ERR, "get client from cache!!!!!!!!!!")
---     return true
--- end
-
--- function _M.get_redis_client(self)
---     ngx.update_time()
---     for i = #client_list, 1, -1 do
---         local client = client_list[i]
---         if self:is_vaild_redis(client) then
---             client_list[i] = nil
---             return client;
---         end
---     end
---     return nil;
--- end
-
--- function _M.push_redis_client(self, client)
---     client_list[#client_list + 1] = client
--- end
 
 function _M._init_connect(self)
-    -- local client = self:get_redis_client();
-    -- if client then
-    --     return client, nil
-    -- end
-
     -- init redis
     local redis, err = redis_c:new()
     if not redis then

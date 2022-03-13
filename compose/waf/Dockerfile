@@ -60,6 +60,8 @@ ENV PATH="$PATH:/usr/local/openresty${RESTY_DEB_FLAVOR}/luajit/bin:/usr/local/op
 COPY nginx.conf /usr/local/openresty${RESTY_DEB_FLAVOR}/nginx/conf/nginx.conf
 # COPY nginx.vh.default.conf /etc/nginx/conf.d/default.conf
 
+RUN apt-get update && apt-get install -y net-tools procps ipset
+
 CMD ["/usr/bin/openresty", "-g", "daemon off;"]
 
 # Use SIGQUIT instead of default SIGTERM to cleanly drain requests

@@ -7,7 +7,7 @@ local function upstream_response()
     local secs = ngx.now()
     local uri, client_ip, request_time, request_uri = ngx.var.uri, GET_CLIENT_IP(), ngx.var.request_time or 0, ngx.var.request_uri
     local upstream_response_time, upstream_addr = tonumber(ngx.var.upstream_response_time) or 0, ngx.var.upstream_addr or ""
-
+    -- bytes_sent
     local status = ngx.status
     local raw_http_request = nil
     local is_need_record = false
