@@ -200,7 +200,8 @@ local function check_args_vaild(req_args, rules_args)
     for key, val in pairs(req_args) do
         local args_data = val
         if type(val) == 'table' then
-            args_data = table.concat(val, " ")
+            local cjson = require("cjson")
+            args_data = cjson.encode(val)
         end
         args_data = unescape(args_data)
         if args_data and type(args_data) ~= "boolean" then
@@ -423,7 +424,6 @@ end
 
 function GET_REDIS_CLIENT()
     local redis = require "redis.redis_helper"
-    ngx.log(ngx.ERR, "redis host ", GLOBAL_CONFIG_INFO["redis"]["host"])
     return redis:new(GLOBAL_CONFIG_INFO["redis"])
 end
 

@@ -3,6 +3,7 @@ local _M = {}
 
 local cookie = 1
 local cache_table = {}
+local cache_time_table = {}
 function _M.get_new_cookie()
     cookie = cookie + 1;
     if (cookie > 1000000) then
@@ -16,11 +17,16 @@ function _M.get_cache_table()
 end
 
 function _M.get_cache_data(key)
-    return cache_table[key];
+    local cache_time = cache_time_table[key] or 0
+    if ngx.now() - cache_time > 120 then
+        return nil
+    end
+    return cache_table[key]
 end
 
 function _M.set_cache_data(key, value)
-    cache_table[key] = value;
+    cache_table[key] = value
+    cache_time_table[key] = ngx.now()
 end
 
 function _M.get_cache_to_json(key, origin)
@@ -36,8 +42,11 @@ function _M.get_cache_to_json(key, origin)
 
     local cjson = require("cjson")
     cache_json = cjson.decode(origin)
-    cache_table[key] = origin
-    cache_table[key .. "_json"] = cache_json
+
+    _M.set_cache_data(key, origin)
+    _M.set_cache_data(key .. "_json", cache_json)
+    -- cache_table[key] = origin
+    -- cache_table[key .. "_json"] = cache_json
     return cache_json, false
 end
 

@@ -36,8 +36,6 @@ local function check_upstream_addr(red)
         end
     end
 
-    ngx.log(ngx.ERR, "check_upstream_addr === ", cjson.encode(hosts))
-
     for host, data in pairs(hosts) do
         ngx.shared.cache_dict:set(GET_UPSTREAM_CACHE_KEY(host), cjson.encode(data))
     end
@@ -97,7 +95,6 @@ local function read_ssl_from_redis(red)
     local datas = red:hgetall("all_ssl_infos") or {}
     for i = 1, #datas / 2 do
         local k, v = datas[i * 2 - 1], datas[i * 2]
-        ngx.log(ngx.ERR, "k ===", k, "v ==", v)
         local infos = cjson.decode(v)
         if infos then
             local host, pem, pem_key = infos["host"], infos["pem"], infos["pem_key"]
