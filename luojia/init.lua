@@ -122,7 +122,7 @@ local function statistics_system_info(red)
         return
     end
 
-    ret_table = STRING_SPLIT(stdout, " ")
+    local ret_table = STRING_SPLIT(stdout, " ")
     local now = ngx.now()
     now = now - now % 15
 
@@ -133,7 +133,7 @@ local function statistics_system_info(red)
         end
     end
 
-    _push_to_list("all_cpu_info", now .. "/" .. ret_table[2] or 0)
+    _push_to_list("all_cpu_info", now .. "/" .. (ret_table[2] or "0"))
     _push_to_list("all_mem_info", now .. "/" .. (ret_table[3] or "") .. "/" .. (ret_table[4] or ""))
     _push_to_list("all_network_info", now .. "/" .. (ret_table[5] or "") .. "/" .. (ret_table[6] or "") .. "/" .. (ret_table[7] or ""))
 end
