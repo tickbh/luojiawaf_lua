@@ -52,6 +52,18 @@ local function sync_all_records_ips(red)
     end
 end
 
+local function sync_all_white_urls(red)
+    local datas = red:hgetall("all_white_urls")
+    if not datas or #datas == 0 then
+        return
+    end
+    for i = 1, #datas / 2 do
+        ngx.log(ngx.ERR, "set url ", datas[i * 2 - 1], " ", datas[i * 2])
+        ngx.shared.cache_dict:set("WU:" .. datas[i * 2 - 1], datas[i * 2])
+        ngx.shared.cache_dict:expire("WU:" .. datas[i * 2 - 1], 120)
+    end
+end
+
 local function sync_all_ip_changes(red)
     local datas = red:hgetall("all_ip_changes")
     if not datas or #datas == 0 then
@@ -151,6 +163,7 @@ local function do_timer()
     read_config_from_redis(red)
     sync_cache_to_redis(red)
     sync_all_records_ips(red)
+    sync_all_white_urls(red)
     sync_all_ip_changes(red)
     read_ssl_from_redis(red)
     statistics_system_info(red)

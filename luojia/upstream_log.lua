@@ -12,6 +12,7 @@ local function upstream_response()
     local raw_http_request = nil
     local is_need_record = false
     local is_random_record = math.random(10000) < GET_RANDOM_RECORD_VALUE()
+    local is_white_url = ngx.ctx.is_white
 
     if RECORD_ERROR_STATUS[status] then
         raw_http_request = GET_RAW_HTTP_REQUEST_INFO()
@@ -56,6 +57,11 @@ local function upstream_response()
 
         if upstream_addr == "" or upstream_response_time == 0 then
             return;
+        end
+
+        if is_white_url then
+            ngx.log(ngx.ERR, "..... now ctx is white url ", uri)
+            return
         end
 
         red:init_pipeline()

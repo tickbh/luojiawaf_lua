@@ -181,14 +181,24 @@ end
 --allow white url
 function WHITE_URL_CHECK()
     if GET_CONFIG_WHITE_URI() == "on" then
-        local white_rules = GET_RULE('whiteurl.rule')
         local uri = ngx.var.request_uri
-        if white_rules ~= nil then
-            for _,rule in pairs(white_rules) do
-                if rule ~= "" and rulematch(uri,rule,"jo") then
+        local uri_table = STRING_SPLIT(uri, "/")
+        local is_first = true
+        while #uri_table >= 1 do
+            local new_uri = "/" .. table.concat(uri_table, "/")
+            local value = ngx.shared.cache_dict:get("WU:" .. new_uri)
+            if value then
+                if is_first and string.find(value, "all") then
+                    ngx.ctx.is_white = true
+                    return true
+                end
+                if string.find(value, "start") then
+                    ngx.ctx.is_white = true
                     return true
                 end
             end
+            table.remove(uri_table, #uri_table)
+            is_first = false
         end
     end
 end
