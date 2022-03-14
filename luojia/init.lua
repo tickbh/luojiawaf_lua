@@ -58,7 +58,6 @@ local function sync_all_white_urls(red)
         return
     end
     for i = 1, #datas / 2 do
-        ngx.log(ngx.ERR, "set url ", datas[i * 2 - 1], " ", datas[i * 2])
         ngx.shared.cache_dict:set("WU:" .. datas[i * 2 - 1], datas[i * 2])
         ngx.shared.cache_dict:expire("WU:" .. datas[i * 2 - 1], 120)
     end

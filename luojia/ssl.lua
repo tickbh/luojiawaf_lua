@@ -4,7 +4,7 @@ local string_find = string.find
 local string_sub = string.sub
 local ssl_host = nil
 
-ngx.log(ngx.ERR, "add ssl " .. (host or "empty"))
+ngx.log(ngx.ERR, "add ssl " .. (host or "empty"), " worker id:", ngx.worker.id())
 if not host then
   return ngx.exit(444)
 end
@@ -55,4 +55,4 @@ if not set_key_ok then
     return ngx.exit(444)
 end
 
-ngx.log(ngx.ERR, "load ssl: " .. host.." ok")
+ngx.log(ngx.ERR, "load ssl: " .. host.." ok", " worker id:", ngx.worker.id())
