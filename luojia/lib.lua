@@ -204,7 +204,7 @@ function WHITE_URL_CHECK()
 end
 
 local function check_args_vaild(req_args, rules_args)
-    if not rules_args then
+    if not rules_args or not req_args then
         return
     end
     for key, val in pairs(req_args) do
