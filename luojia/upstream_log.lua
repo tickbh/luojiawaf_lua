@@ -60,7 +60,6 @@ local function upstream_response()
         end
 
         if is_white_url then
-            ngx.log(ngx.ERR, "..... now ctx is white url ", uri)
             return
         end
 

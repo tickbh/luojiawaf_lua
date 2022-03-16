@@ -219,6 +219,7 @@ local function check_args_vaild(req_args, rules_args)
                 if rulematch(args_data,rule,"jo") then
                     LOG_RECORD('Deny_URL_Args',ngx.var.request_uri,"-",rule)
                     RECORD_ACCTACK_REQUEST()
+                    ADD_FORBIDDEN_TIME(GET_CLIENT_IP())
                     WAF_OUTPUT()
                     return true, rule
                 end
@@ -270,6 +271,7 @@ function FORBIDDEN_IP_CHECK()
         local value = ngx.shared.ip_dict:get("f:"..GET_CLIENT_IP())
         if value and string.find(value, "deny") then
             LOG_RECORD('Deny_URL_Args',ngx.var.request_uri,"-","forbidden")
+            ADD_FORBIDDEN_TIME(GET_CLIENT_IP())
             WAF_OUTPUT()
             return true
         end

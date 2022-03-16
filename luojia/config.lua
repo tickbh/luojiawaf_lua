@@ -114,7 +114,7 @@ function GET_CONFIG_LIMIT_TIME()
 end
 
 function GET_FORBIDDEN_BY_FIREWALL_TIMES()
-    return tonumber(GET_CONFIG_DATA_BY_KEY("forbidden_by_firewall_times", 2)) or 2
+    return tonumber(GET_CONFIG_DATA_BY_KEY("forbidden_by_firewall_times", 20)) or 20
 end
 
 function GET_RANDOM_RECORD_VALUE()
