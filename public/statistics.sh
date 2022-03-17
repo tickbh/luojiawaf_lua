@@ -22,8 +22,8 @@ sleep ${interval}
 RX_next=$(cat /proc/net/dev | grep -v lo | awk '{sum+=$2} END {print sum}')
 TX_next=$(cat /proc/net/dev | grep -v lo | awk '{sum+=$10} END {print sum}')
 
-RX=$((${RX_next}-${RX_pre}))
-TX=$((${TX_next}-${TX_pre}))
+RX=$(((${RX_next}-${RX_pre})/${interval}))
+TX=$(((${TX_next}-${TX_pre})/${interval}))
 
 mem_total=`free -m | sed -n '2p' |awk '{print $2}'`
 #已使用内存
