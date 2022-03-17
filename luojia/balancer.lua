@@ -12,6 +12,10 @@ if not cache_info then
 end
 
 if not cache_info then
+    cache_info = ngx.shared.cache_dict:get(GET_UPSTREAM_CACHE_KEY("*"))
+end
+
+if not cache_info then
     ngx.log(ngx.ERR, "not set upstream")
     return ngx.exit(500)
 end

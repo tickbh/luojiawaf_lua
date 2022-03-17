@@ -455,9 +455,9 @@ function GET_STATIS_COMMAND()
 end
 
 function GET_MATCH_STAR_HOST(host)
-    if string.match(host,'%d+.%d+.%d+.%d+') == host then
-        return "*"
-    end
+    -- if string.match(host,'%d+.%d+.%d+.%d+') == host then
+    --     return "*"
+    -- end
     local dot_pos = string.find(host,".",1,true)
     if not dot_pos then
         return "*"
