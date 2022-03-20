@@ -14,6 +14,8 @@ local function upstream_response()
     local is_random_record = math.random(10000) < GET_RANDOM_RECORD_VALUE()
     local is_white_url = ngx.ctx.is_white
 
+    INCR_OUT_STREAM(secs, ngx.var.http_host, ngx.var.bytes_sent)
+
     if RECORD_ERROR_STATUS[status] then
         raw_http_request = GET_RAW_HTTP_REQUEST_INFO()
     else

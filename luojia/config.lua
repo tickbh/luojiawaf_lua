@@ -81,6 +81,10 @@ function GET_CONFIG_USER_AGENT()
     return GET_CONFIG_DATA_BY_KEY("user_agent_check", "on")
 end
 
+function GET_CONFIG_STREAM_LIMIT()
+    return GET_CONFIG_DATA_BY_KEY("stream_limit_check", "off")
+end
+
 function GET_CONFIG_UPSTREAM_METHOD()
     return GET_CONFIG_DATA_BY_KEY("upstream_method", "random")
 end
@@ -119,6 +123,14 @@ end
 
 function GET_RANDOM_RECORD_VALUE()
     return tonumber(GET_CONFIG_DATA_BY_KEY("random_record_value", 100)) or 100
+end
+
+function GET_IN_LIMIT(host)
+    return (tonumber(GET_CONFIG_DATA_BY_KEY("in_limit:" .. host, 0)) or 0) * 1048576
+end
+
+function GET_OUT_LIMIT(host)
+    return (tonumber(GET_CONFIG_DATA_BY_KEY("out_limit:" .. host, 0)) or 0) * 1048576
 end
 
 GLOBAL_CONFIG_INFO = {redis={

@@ -38,6 +38,7 @@ local function check_upstream_addr(red)
 
     for host, data in pairs(hosts) do
         ngx.shared.cache_dict:set(GET_UPSTREAM_CACHE_KEY(host), cjson.encode(data))
+        ngx.shared.cache_dict:expire(GET_UPSTREAM_CACHE_KEY(host), 3600)
     end
 end
 

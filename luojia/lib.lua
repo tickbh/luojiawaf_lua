@@ -266,6 +266,11 @@ function POST_ATTACK_CHECK()
     return false
 end
 
+local function get_small_number(number)
+    local _, small = math.modf(number)
+    return small
+end
+
 function FORBIDDEN_IP_CHECK()
     if GET_CONFIG_FORBIDDEN_IP() == "on" then
         local value = ngx.shared.ip_dict:get("f:"..GET_CLIENT_IP())
@@ -274,6 +279,115 @@ function FORBIDDEN_IP_CHECK()
             ADD_FORBIDDEN_TIME(GET_CLIENT_IP())
             WAF_OUTPUT()
             return true
+        end
+    end
+end
+
+function INCR_IN_STREAM(time, host, bytes)
+    if string.match(host,'%d+.%d+.%d+.%d+') == host then
+        host = "ip_host"
+    end
+    local idx = GET_CYCLICAL_IDX(60, time)
+    local limit = ngx.shared.limit
+    local host_request = "in:" .. host .. idx
+    local now, err = limit:incr(host_request, bytes, 0, 60)
+    local in_limit = GET_IN_LIMIT(host)
+
+    if in_limit > 0 and now > in_limit then
+        for step=1,10 do
+            local new_idx = step + idx
+            local host_request = "in:" .. host .. new_idx
+            local value = limit:get(host_request) or 0
+            if value < in_limit then
+                limit:incr(host_request, bytes, 0, 60)
+                return step - get_small_number(time)
+            end
+        end
+        -- 超过10秒统一延时20秒, 不立即返回, 防止客户端无限请求刷流量
+        return 11
+    end
+    return 0
+end
+
+local function _incr_out_stream(time, host, bytes)
+    if string.match(host,'%d+.%d+.%d+.%d+') == host then
+        host = "ip_host" 
+    end
+    local idx = GET_CYCLICAL_IDX(60, time)
+    local limit = ngx.shared.limit
+    local out_limit = GET_OUT_LIMIT(host)
+    if out_limit > 0 then
+        for step=0,10 do
+            local new_idx = step + idx
+            local host_request = "out:" .. host .. new_idx
+            local value = limit:incr(host_request, bytes, 0, 60 * step)
+            if value == bytes or value < out_limit then
+                break
+            end 
+        end
+    end
+end
+
+function INCR_OUT_STREAM(time, host, bytes)
+    if GET_CONFIG_STREAM_LIMIT() == "on" then
+        _incr_out_stream(time, host, bytes)
+        _incr_out_stream(time, "*", bytes)
+    end
+end
+
+function CHECK_OUT_DELAY(time, host)
+    local idx = GET_CYCLICAL_IDX(60, time)
+    local limit = ngx.shared.limit
+    local out_limit = GET_OUT_LIMIT(host)
+    if out_limit > 0 then
+        for step=0,10 do
+            local new_idx = step + idx
+            local host_request = "out:" .. host .. new_idx
+            local value = limit:get(host_request) or 0
+            if value < out_limit then
+                return math.max(0, step - get_small_number(time))
+            end
+        end
+
+        return 10
+    end
+    return 0
+end
+
+function CHECK_STREAM_LIMIT()
+    if GET_CONFIG_STREAM_LIMIT() == "on" then
+        local host = ngx.var.http_host
+        if string.match(host,'%d+.%d+.%d+.%d+') == host then
+            host = "ip_host" 
+        end
+
+        local time = ngx.now()
+        local delay = INCR_IN_STREAM(time, host, ngx.var.request_length)
+        if delay > 0 then
+            ngx.log(ngx.ERR, host, " in over limit delay request ", delay)
+            ngx.sleep(delay)
+            return
+        end
+
+        local delay = INCR_IN_STREAM(time, "*", ngx.var.request_length)
+        if delay > 0 then
+            ngx.log(ngx.ERR, "*", " in over limit delay request ", delay)
+            ngx.sleep(delay)
+            return
+        end
+
+        local delay = CHECK_OUT_DELAY(time, host)
+        if delay > 0 then
+            ngx.log(ngx.ERR, host, " out over limit delay request ", delay)
+            ngx.sleep(delay)
+            return
+        end
+
+        local delay = CHECK_OUT_DELAY(time, "*")
+        if delay > 0 then
+            ngx.log(ngx.ERR, "*", " out over limit delay request ", delay)
+            ngx.sleep(delay)
+            return
         end
     end
 end

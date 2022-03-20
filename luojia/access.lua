@@ -12,6 +12,7 @@ local function waf_main()
     elseif FORBIDDEN_IP_CHECK() then
     elseif LIMIT_IP_CHECK() then
     elseif LIMIT_URI_CHECK() then
+    elseif CHECK_STREAM_LIMIT() then
     elseif POST_ATTACK_CHECK() then
     elseif URL_ARGS_ATTACK_CHECK() then
     end
