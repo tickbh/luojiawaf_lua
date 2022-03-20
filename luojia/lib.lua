@@ -356,6 +356,9 @@ end
 
 function CHECK_STREAM_LIMIT()
     if GET_CONFIG_STREAM_LIMIT() == "on" then
+        if not IS_IN_LIMIT_TIME() then
+            return
+        end
         local host = ngx.var.http_host
         if string.match(host,'%d+.%d+.%d+.%d+') == host then
             host = "ip_host" 
