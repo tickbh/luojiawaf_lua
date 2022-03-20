@@ -5,6 +5,11 @@
 > 由于普通的web防火墙通常只是单台的限制, 并不能对集群中的流量进行全局的分析
 > 从而无法达到有效的防止cc的攻击, 攻击者可分散攻击而让单台无法分析出其是否是恶意的攻击
 > 所以需要有中台的分析,才能有效的判断是否为恶意IP,从而进行限制
+
+## 系统组成部分
+系统由[节点服务器 luojiawaf_lua(nginx+lua) ](https://gitee.com/tickbh/luojiawaf_lua)和
+[中控服务器后端 luajiawaf_server(django) ](https://gitee.com/tickbh/luojiawaf_server)组成, 数据由用户在中控服务器修改,然后由中控服务器同步到节点服务器, 数据更新完毕
+
 ### 快速开始  
 由于docker不能得到真实的IP地址，暂时不支持在docker部署
 依赖redis做数据缓存及与后端的数据通讯
@@ -54,19 +59,19 @@ iptables -A INPUT -p tcp --dport 59736 -j REJECT
 ### 相关连接
 > 国内访问
 
-[前台 luojiawaf_lua(nginx+lua) ](https://gitee.com/tickbh/luojiawaf_lua)
+[节点服务器 luojiawaf_lua(nginx+lua) ](https://gitee.com/tickbh/luojiawaf_lua)
 
-[后台前端 luajiawaf_web(ant.design) ](https://gitee.com/tickbh/luojiawaf_web)
+[中控服务器前端 luajiawaf_web(ant.design) ](https://gitee.com/tickbh/luojiawaf_web)
 
-[后台后端 luajiawaf_server(django) ](https://gitee.com/tickbh/luojiawaf_server)
+[中控服务器后端 luajiawaf_server(django) ](https://gitee.com/tickbh/luojiawaf_server)
 
 > GITHUB
 
-[前台 luojiawaf_lua(nginx+lua) ](https://github.com/tickbh/luojiawaf_lua)
+[节点服务器 luojiawaf_lua(nginx+lua) ](https://github.com/tickbh/luojiawaf_lua)
 
-[后台前端 luajiawaf_web(ant.design) ](https://github.com/tickbh/luojiawaf_web)
+[中控服务器前端 luajiawaf_web(ant.design) ](https://github.com/tickbh/luojiawaf_web)
 
-[后台后端 luajiawaf_server(django) ](https://github.com/tickbh/luojiawaf_server)
+[中控服务器后端 luajiawaf_server(django) ](https://github.com/tickbh/luojiawaf_server)
 
 ## 💬 社区交流
 
