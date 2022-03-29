@@ -143,6 +143,7 @@ end
 
 function GET_RAW_HTTP_REQUEST_INFO()
     local raw_header = ngx.req.raw_header()
+    ngx.req.read_body()
     local post_data = ngx.req.get_body_data()
     if post_data then
         return raw_header .. post_data
@@ -395,6 +396,19 @@ function CHECK_STREAM_LIMIT()
     end
 end
 
+function ADD_REOCRD_VISIT()
+    local red = GET_REDIS_CLIENT()
+    local raw_http_request = GET_RAW_HTTP_REQUEST_INFO()
+    local client_ip = GET_CLIENT_IP()
+    local add_pre = client_ip .. ":_:" .. ngx.now() .. "\r\n"
+    local key = "client_url_lists:"..client_ip
+    local len = red:lpush(key, add_pre .. raw_http_request)
+    if len > 1000 then
+        red:ltrim(key, 0, 999)
+    end
+    red:expire(key, 86400)
+end
+
 function ADD_FORBIDDEN_TIME(client_ip)
     local cc_fobidden = "cc_fobidden:"..client_ip
     local limit = ngx.shared.limit
@@ -410,6 +424,10 @@ function ADD_FORBIDDEN_TIME(client_ip)
         if not ok then
             ngx.log(ngx.ERR,stdout, stderr, reason, status)
         end
+    end
+
+    if GET_CONFIG_FORBIDDEN_RECORD() == "on" then
+        ADD_REOCRD_VISIT()
     end
 end
 
@@ -584,7 +602,7 @@ end
 
 function STRING_SPLIT(str, seq)
     local rt = {}
-    string.gsub(str, '[^'..(seq or " ")..']+', function(w) 
+    local _ = string.gsub(str, '[^'..(seq or " ")..']+', function(w) 
         table.insert(rt, w) 
     end)
     return rt

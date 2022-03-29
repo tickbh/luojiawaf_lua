@@ -81,6 +81,10 @@ function GET_CONFIG_USER_AGENT()
     return GET_CONFIG_DATA_BY_KEY("user_agent_check", "on")
 end
 
+function GET_CONFIG_FORBIDDEN_RECORD()
+    return GET_CONFIG_DATA_BY_KEY("config_forbidden_record", "on")
+end
+
 function GET_CONFIG_STREAM_LIMIT()
     return GET_CONFIG_DATA_BY_KEY("stream_limit_check", "off")
 end
