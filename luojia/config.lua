@@ -29,6 +29,151 @@ CONFIG_OUTPUT_HTML=[[
 </html>
 ]]
 
+CONFIG_CAPTCHA_HTML=[[
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="Content-Language" content="zh-cn" />
+<title>洛甲WAF-Web应用防火墙</title>
+</head>
+<body>
+
+<div class="Content"  align="center">
+    <div class="MainBox" >
+
+        <img src="/luojiawaf/capimg" onclick="refresh()" />
+        <form action="#" name="captchaform" method="post">
+           <div class="Text">
+               <div style="background-color: #005ce6;width: 4px; height: 16px;">
+               </div>
+               <div>请输入验证码 :</div>
+            </div>
+           <input type="text" name="captcha" class="Input">
+           <br>
+           <span id="captchatag"></span>
+           <br>
+           <input class="Button" onClick="commit()" value="提交">
+        </form> 
+        
+        
+        <h2 align="center"> 您的IP为:local_client_ip </h2>
+        <h3 align="center"> 您的IP存在异常访问的情况, 若误封, 请联系管理员 </h3>
+        <h4 align="center"> 洛甲WAF为您的服务提供保驾护航 </h4>
+    </div>
+</div>
+
+
+
+
+ 
+</body>
+
+<script language="javascript" type="text/javascript">
+
+function refresh()
+    {
+        var xmlhttp = new XMLHttpRequest ();
+        xmlhttp.open("POST","/luojiawaf/capt/refresh",true);
+        xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+        xmlhttp.send(null);
+        if(xmlhttp.responseText.indexOf("ok") >= 0) {
+            alert("正在为您更换验证")
+            location.reload();
+        } else {
+            alert("输入错误")
+        }
+    }
+
+function commit()
+{
+    var captcha = document.captchaform.captcha.value;
+    
+    if(captcha=="")
+    {
+        document.getElementById('captchatag').innerText='验证码不能为空!';
+        return ;
+    }else
+    {
+        var xmlhttp = new XMLHttpRequest ();
+        xmlhttp.open("POST","/luojiawaf/captcha",true);
+        xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+        xmlhttp.send("captcha="+captcha);
+        console.log(xmlhttp); 
+        if(xmlhttp.responseText.indexOf("ok") >= 0) {
+            alert("正在为您解封, 请稍后")
+            location.reload();
+        } else {
+            alert("输入错误")
+        }
+    }
+}
+</script>
+<style>
+    body{
+        background-color: #f6f9fe;
+    }
+    .Content{
+        padding:40px 20px 0px 20px;
+    }
+    .Text{
+        color: #333;
+        padding-bottom: 4px;
+        display: flex;
+        width: 180px;
+        line-height: 16px;
+        text-indent: 5px;
+    }
+    .Input{
+        width: 170px;
+        margin-bottom: 10px;
+        height: 25px;
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #ccc;
+        border-radius: 1px;
+    }
+    .Button{
+        display: inline-block;
+        padding: 0 16px;
+        font-size: 14px;
+        line-height: 32px;
+        text-align: center;
+        cursor: pointer;
+        background: none;
+        border: 1px solid #005ce6;
+        border-radius: 3px;
+        margin: 0 8px;
+        background-color: #06f;
+        color: #fff;
+        width: 180px;
+    }
+    .Button:hover{
+        border-color: #005ce6;
+        background-color: #005ce6;
+    }
+    .MainBox {
+        width:400px;
+        height: 100%;
+        padding: 30px;
+        margin: 0 auto;
+        background-color: #fff;
+        box-shadow: 0 0 6px 0 rgb(152 181 229 / 37%);
+        border-radius: 5px;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        -o-box-sizing: border-box;
+        -ms-box-sizing: border-box;
+        box-sizing: border-box;
+        float: none;
+        overflow: hidden
+    }
+</style>
+</html>
+
+    
+]]
+
 CONFIG_TOOFASTER_HTML=[[
 <!DOCTYPE html>
 <html>

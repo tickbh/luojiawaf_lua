@@ -78,8 +78,19 @@ local function sync_all_ip_changes(red)
             REMOVE_FORBIDDEN(k)
         elseif string.find(v, "add") then
             ngx.shared.ip_dict:set("f:"..k, "deny")
-            local deny_time = tonumber(string.match(v,'%d+')) or 600 
+            local deny_time = tonumber(string.match(v,'%d+')) or 600
             ngx.shared.ip_dict:expire("f:"..k, deny_time)
+        elseif string.find(v, "captcha") then
+            local split = STRING_SPLIT(v, "|")
+            local  timeout, key = split[2], split[3]
+
+            ngx.log(ngx.ERR, "add ip ", k, " key = ", key, " v ==", v, " timeout ==", timeout)
+            ngx.shared.ip_dict:set("f:"..k, "captcha")
+            ngx.shared.ip_dict:set("f:"..k..":key", key)
+
+            local deny_time = tonumber(timeout) or 600
+            ngx.shared.ip_dict:expire("f:"..k, deny_time)
+            ngx.shared.ip_dict:expire("f:"..k..":key", deny_time)
         end
     end
 end

@@ -83,6 +83,86 @@ function LOG_RECORD(method,url,data,ruletag)
     ngx.log(ngx.ERR, "waf info: ", LOG_LINE)
 end
 
+function WAF_CAPTCHA_OUT()
+    local client_ip = GET_CLIENT_IP()
+    local key = ngx.var.uri
+    local captcha_key = "f:"..client_ip..":key"
+    local cap_key = ngx.shared.ip_dict:get(captcha_key) or ""
+    if key == "/luojiawaf/capimg" then
+        local red = GET_REDIS_CLIENT()
+        local png = red:get("image_" .. cap_key)
+        ngx.header.content_type = "image/png"
+        ngx.say(png)
+        ngx.exit(ngx.HTTP_OK)
+        return
+    elseif key == "/luojiawaf/capt/refresh" then
+        ngx.header.content_type = "text/html"
+        local timer_key = "f:"..client_ip .. ":timer"
+        local current = ngx.shared.ip_dict:incr(timer_key, 1, 0, 600)
+        if current > 5 then
+            ADD_FORBIDDEN_TIME(GET_CLIENT_IP())
+            ngx.say("error")
+            ngx.exit(ngx.HTTP_OK)
+        end
+        local red = GET_REDIS_CLIENT()
+        local cjson = require("cjson")
+        local info = cjson.encode({
+            action = "captcha_refresh",
+            ip = client_ip,
+        })
+        red:hset("all_import_msg", info, ngx.now())
+
+        ngx.say("ok")
+        ngx.exit(ngx.HTTP_OK)
+    elseif key == "/luojiawaf/captcha" then
+        local args = {}
+        if ngx.req.get_method() == "POST" then
+            ngx.req.read_body()
+
+            if ngx.req.get_headers()["Content-Type"] == 'application/json' then
+                local data = ngx.req.get_body_data()
+                if not data then
+                    return true
+                end
+                local cjson = require("cjson")
+                args = cjson.decode(data)
+            else
+                args = ngx.req.get_post_args()
+            end
+        else
+            args = ngx.req.get_uri_args()
+        end
+
+        local red = GET_REDIS_CLIENT()
+        local check_captcha = red:get("result_" .. cap_key)
+        local captcha = args["captcha"] or ""
+        ngx.header.content_type = "text/html"
+        if check_captcha ~= string.upper(captcha) then
+            ADD_FORBIDDEN_TIME(GET_CLIENT_IP())
+            ngx.say("error")
+            ngx.exit(ngx.HTTP_OK)
+        end
+
+        ngx.shared.ip_dict:set("f:"..client_ip, "allow")
+        ngx.shared.ip_dict:expire("f:"..client_ip, 600)
+
+        local cjson = require("cjson")
+        local info = cjson.encode({
+            action = "captcha_ok",
+            ip = client_ip,
+        })
+        red:hset("all_import_msg", info, ngx.now())
+
+        ngx.say("ok")
+        ngx.exit(ngx.HTTP_OK)
+    end
+    ngx.header.content_type = "text/html"
+    local info = string.gsub(CONFIG_CAPTCHA_HTML, "local_client_ip", GET_CLIENT_IP())
+    ngx.say(info)
+    ngx.exit(ngx.HTTP_OK)
+end
+
+
 function WAF_OUTPUT()
     ngx.shared.cache_dict:incr(CC_ATTACK_CACHE_TIMES_KEY, 1, 0)
     if CONFIG_WAF_OUTPUT == "redirect" then
@@ -141,9 +221,12 @@ function CALC_TIMES_AND_COST_TIME(times, cost_time)
     return cost_time + times
 end
 
-function GET_RAW_HTTP_REQUEST_INFO()
+function GET_RAW_HTTP_REQUEST_INFO(read_body)
     local raw_header = ngx.req.raw_header()
-    ngx.req.read_body()
+
+    if read_body then
+        ngx.req.read_body()
+    end
     local post_data = ngx.req.get_body_data()
     if post_data then
         return raw_header .. post_data
@@ -280,6 +363,10 @@ function FORBIDDEN_IP_CHECK()
             ADD_FORBIDDEN_TIME(GET_CLIENT_IP())
             WAF_OUTPUT()
             return true
+        elseif value and string.find(value, "captcha") then
+            LOG_RECORD('Deny_URL_Args',ngx.var.request_uri,"-","captcha")
+            WAF_CAPTCHA_OUT()
+            return true
         end
     end
 end
@@ -398,7 +485,7 @@ end
 
 function ADD_REOCRD_VISIT()
     local red = GET_REDIS_CLIENT()
-    local raw_http_request = GET_RAW_HTTP_REQUEST_INFO()
+    local raw_http_request = GET_RAW_HTTP_REQUEST_INFO(true)
     local client_ip = GET_CLIENT_IP()
     local add_pre = client_ip .. ":_:" .. ngx.now() .. "\r\n"
     local key = "client_url_lists:"..client_ip
@@ -560,7 +647,7 @@ end
 
 function RECORD_ACCTACK_REQUEST()
     local red = GET_REDIS_CLIENT()
-    local raw_http_request = GET_RAW_HTTP_REQUEST_INFO()
+    local raw_http_request = GET_RAW_HTTP_REQUEST_INFO(true)
     local key = "client_attack_url_all"
     local add_pre = GET_CLIENT_IP() .. ":_:" .. ngx.now() .. "\r\n"
     local len = red:lpush(key, add_pre .. raw_http_request)
