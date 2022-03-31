@@ -72,18 +72,16 @@ CONFIG_CAPTCHA_HTML=[[
 <script language="javascript" type="text/javascript">
 
 function refresh()
-    {
-        var xmlhttp = new XMLHttpRequest ();
-        xmlhttp.open("POST","/luojiawaf/capt/refresh",true);
-        xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-        xmlhttp.send(null);
-        if(xmlhttp.responseText.indexOf("ok") >= 0) {
-            alert("正在为您更换验证")
-            location.reload();
-        } else {
-            alert("输入错误")
-        }
+{
+    var xmlhttp = new XMLHttpRequest ();
+    xmlhttp.open("POST","/luojiawaf/capt/refresh",true);
+    xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+    xmlhttp.send(null);
+    if(xmlhttp.responseText.indexOf("ok") >= 0) {
+        alert("正在为您更换验证")
+        location.reload();
     }
+}
 
 function commit()
 {
@@ -96,7 +94,7 @@ function commit()
     }else
     {
         var xmlhttp = new XMLHttpRequest ();
-        xmlhttp.open("POST","/luojiawaf/captcha",true);
+        xmlhttp.open("POST","/luojiawaf/captcha",false);
         xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
         xmlhttp.send("captcha="+captcha);
         console.log(xmlhttp); 

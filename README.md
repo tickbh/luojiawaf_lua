@@ -54,6 +54,8 @@ iptables -A INPUT -p tcp --dport 59736 -j REJECT
 ![](./screenshot/upstream.png)
 ##### SSL证书
 ![](./screenshot/ssl.png)
+##### 行为验证码
+![](./screenshot/captcha.png)
 
 
 ### 相关连接

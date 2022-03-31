@@ -91,6 +91,13 @@ local function sync_all_ip_changes(red)
             local deny_time = tonumber(timeout) or 600
             ngx.shared.ip_dict:expire("f:"..k, deny_time)
             ngx.shared.ip_dict:expire("f:"..k..":key", deny_time)
+        elseif string.find(v, "allow") then
+            local split = STRING_SPLIT(v, "|")
+            local timeout = split[2]
+            local deny_time = tonumber(timeout) or 600
+            
+            ngx.shared.ip_dict:set("f:"..k, "allow")
+            ngx.shared.ip_dict:expire("f:"..k, deny_time)
         end
     end
 end
@@ -179,8 +186,7 @@ local function do_timer()
     read_ssl_from_redis(red)
     statistics_system_info(red)
     ngx.log(ngx.ERR, "redis ping result ", red:ping(), " worker id:", ngx.worker.id())
-    
 end
 
-ngx.timer.every(15, do_timer)
+ngx.timer.every(10, do_timer)
 ngx.timer.at(1, do_timer)
