@@ -19,7 +19,7 @@ local function upstream_response()
     if RECORD_ERROR_STATUS[status] then
         raw_http_request = GET_RAW_HTTP_REQUEST_INFO()
     else
-        local check = ngx.shared.ip_dict:get(client_ip)
+        local check = ngx.shared.ip_dict:get("f:"..client_ip)
         if check and string.find(check, "log") then
             is_need_record = true
             raw_http_request = GET_RAW_HTTP_REQUEST_INFO()

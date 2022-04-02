@@ -143,7 +143,7 @@ function WAF_CAPTCHA_OUT()
             ngx.exit(ngx.HTTP_OK)
         end
 
-        ngx.shared.ip_dict:set("f:"..client_ip, "allow")
+        ngx.shared.ip_dict:set("f:"..client_ip, "nocheck")
         ngx.shared.ip_dict:expire("f:"..client_ip, 600)
 
         local cjson = require("cjson")
@@ -255,7 +255,7 @@ end
 --allow white ip
 function WHITE_IP_CHECK()
     if GET_CONFIG_WHITE_IP() == "on" then
-        local value = ngx.shared.ip_dict:get(GET_CLIENT_IP())
+        local value = ngx.shared.ip_dict:get("f:"..GET_CLIENT_IP())
         if value and string.find(value, "allow") then
             return true
         end

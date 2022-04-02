@@ -48,8 +48,8 @@ local function sync_all_records_ips(red)
         return
     end
     for i = 1, #datas / 2 do
-        ngx.shared.ip_dict:set(datas[i * 2 - 1], datas[i * 2])
-        ngx.shared.ip_dict:expire(datas[i * 2 - 1], 120)
+        ngx.shared.ip_dict:set("f:"..datas[i * 2 - 1], datas[i * 2])
+        ngx.shared.ip_dict:expire("f:"..datas[i * 2 - 1], 120)
     end
 end
 
@@ -91,12 +91,11 @@ local function sync_all_ip_changes(red)
             local deny_time = tonumber(timeout) or 600
             ngx.shared.ip_dict:expire("f:"..k, deny_time)
             ngx.shared.ip_dict:expire("f:"..k..":key", deny_time)
-        elseif string.find(v, "allow") then
+        elseif string.find(v, "nocheck") then
             local split = STRING_SPLIT(v, "|")
             local timeout = split[2]
             local deny_time = tonumber(timeout) or 600
-            
-            ngx.shared.ip_dict:set("f:"..k, "allow")
+            ngx.shared.ip_dict:set("f:"..k, "nocheck")
             ngx.shared.ip_dict:expire("f:"..k, deny_time)
         end
     end
