@@ -94,9 +94,9 @@ function commit()
     }else
     {
         var xmlhttp = new XMLHttpRequest ();
-        xmlhttp.open("POST","/luojiawaf/captcha",false);
+        xmlhttp.open("GET","/luojiawaf/captcha?captcha="+captcha,false);
         xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-        xmlhttp.send("captcha="+captcha);
+        xmlhttp.send();
         console.log(xmlhttp); 
         if(xmlhttp.responseText.indexOf("ok") >= 0) {
             alert("正在为您解封, 请稍后")

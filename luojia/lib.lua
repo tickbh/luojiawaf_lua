@@ -96,7 +96,7 @@ function WAF_CAPTCHA_OUT()
         ngx.exit(ngx.HTTP_OK)
         return
     elseif key == "/luojiawaf/capt/refresh" then
-        ngx.header.content_type = "text/html"
+        ngx.header.content_type = "text/plain"
         local timer_key = "f:"..client_ip .. ":timer"
         local current = ngx.shared.ip_dict:incr(timer_key, 1, 0, 600)
         if current > 5 then
@@ -136,7 +136,7 @@ function WAF_CAPTCHA_OUT()
         local red = GET_REDIS_CLIENT()
         local check_captcha = red:get("result_" .. cap_key)
         local captcha = args["captcha"] or ""
-        ngx.header.content_type = "text/html"
+        ngx.header.content_type = "text/plain"
         if check_captcha ~= string.upper(captcha) then
             ADD_FORBIDDEN_TIME(GET_CLIENT_IP())
             ngx.say("error")
