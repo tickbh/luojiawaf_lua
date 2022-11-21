@@ -6,7 +6,10 @@ local shell = require "resty.shell"
 
 local function init_config()
     local cjson = require("cjson")
-    local read_config = io.open('/etc/luojia.json',"r")
+    local read_config = io.open('/etc/luojia_local.json',"r")
+    if not read_config then
+        read_config = io.open('/etc/luojia.json',"r")
+    end
     if not read_config then
         read_config = assert(io.open(CONFIG_PUBLIC..'/luojia.json',"r"))
     end

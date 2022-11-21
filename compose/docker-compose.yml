@@ -39,6 +39,7 @@ services:
       - "redis_db:192.168.179.233"
     volumes:
       - ../:/luojia:rw
+      - ./luojia_local.json:/etc/luojia_local.json:rw
       - ./luojia.json:/etc/luojia.json:rw
       - ../nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:rw
     ports:

@@ -6,3 +6,4 @@ __pycache__
 store
 /shell/redis/dump.rdb
 .vscode
+/compose/luojia_local.json
