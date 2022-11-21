@@ -44,8 +44,6 @@ local function check_upstream_addr(red)
     local cjson = require("cjson")
     local hosts = {}
     local datas = red:hgetall("all_upstream_infos") or {}
-    ngx.log(ngx.ERR, "all_upstream_infos:", cjson.encode(datas))
-
 
     for i = 1, #datas / 2 do
         local k, v = datas[i * 2 - 1], datas[i * 2]
@@ -97,7 +95,6 @@ local function sync_all_ip_infos(red)
     end
     local now = os.time()
     local datas = red:hgetall("all_ip_changes")
-    ngx.log(ngx.ERR, "sync_all_ip_infos ", OBJECT_TO_STRING(datas))
     if not datas or #datas == 0 then
         return
     end
@@ -118,7 +115,6 @@ local function sync_all_ip_infos(red)
         elseif string.find(v, "captcha") then
             local split = STRING_SPLIT(v, "|")
             local  timeout, key = split[2], split[3]
-            ngx.log(ngx.ERR, "add ip ", k, " key = ", key, " v ==", v, " timeout ==", timeout)
             local deny_time = tonumber(timeout) or 0
             if deny_time > now then
                 ngx.shared.ip_dict:set("f:"..k, "captcha")
@@ -221,8 +217,6 @@ local function do_timer()
     end
     ngx.shared.cache_dict:set("last_timer_update", last_timer_update)
 
-    local cjson = require("cjson")
-    ngx.log(ngx.ERR, "reload data info in do_timer:", ngx.now(), " worker id:", ngx.worker.id(), cjson.encode(GLOBAL_CONFIG_INFO["redis"]), red:get("a") )
     check_upstream_addr(red)
     read_config_from_redis(red)
     sync_cache_to_redis(red)
@@ -231,7 +225,7 @@ local function do_timer()
     sync_all_ip_infos(red)
     read_ssl_from_redis(red)
     statistics_system_info(red)
-    ngx.log(ngx.ERR, "redis ping result ", red:ping(), " worker id:", ngx.worker.id())
+    ngx.log(ngx.ERR, "reload timer ", red:ping(), " worker id:", ngx.worker.id())
 end
 
 ngx.timer.every(10, do_timer)

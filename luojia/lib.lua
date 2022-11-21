@@ -17,8 +17,6 @@ local may_real_ip_headers = {"X-Forwarded-For", "x-forwarded-for", "luojiawaf_re
 function GET_CLIENT_IP()
     local client_ip = nil
     local cjson = require("cjson")
-    ngx.log(ngx.ERR, "header = ", cjson.encode(ngx.req.get_headers()))
-    
     for _, val in ipairs(may_real_ip_headers) do
         client_ip = ngx.req.get_headers()[val]
         if client_ip then
@@ -610,7 +608,6 @@ function LIMIT_URI_CHECK()
 end
 
 local function _check_in_limit()
-    ngx.log(ngx.ERR, "start check")
     local weekday, time = GET_CONFIG_LIMIT_WEEKDAY(), GET_CONFIG_LIMIT_TIME()
     if not weekday and not time then
         return true
