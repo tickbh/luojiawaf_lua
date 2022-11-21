@@ -10,26 +10,19 @@
 系统由[节点服务器 luojiawaf_lua(nginx+lua) ](https://gitee.com/tickbh/luojiawaf_lua)和
 [中控服务器后端 luajiawaf_server(django) ](https://gitee.com/tickbh/luojiawaf_server)组成, 数据由用户在中控服务器修改,然后由中控服务器同步到节点服务器, 数据更新完毕
 
-### 快速开始  
-由于docker不能得到真实的IP地址，暂时不支持在docker部署
-依赖redis做数据缓存及与后端的数据通讯
-### 安装redis(debian其它的类似)
-进入shell/redis/运行./install_redis.sh, 通过start_redis.sh进行启动
-### 安装openresty
-进入shell/运行./install.sh, 安装完后，通过start.sh进行启动
-### 配置防火墙信息
-```
-#安装ipset，如果被封的IP直接通过防火墙进行封禁
-apt-get install ipset -y
-ipset create luojia hash:net hashsize 4096 maxelem 200000 timeout 3600
-iptables -I INPUT -m set --match-set luojia src -p tcp -j REJECT
+#### 配置
+在compose/luojia.json配置相应的服务器id和redis地址
+配置将通过后台, 共享redis配置, 从redis中读出最新的配置, 包括负载均衡, 黑白名单, 限制内容等参数
 
-iptables -A INPUT -p tcp --dport 80 -j ACCEPT
-iptables -A INPUT -p tcp --dport 443 -j ACCEPT
-iptables -A INPUT -p tcp --dport 59736 -s 127.0.0.1 -j ACCEPT
-#对指定IP(后端服务器)放行redis的端口, 配置防火墙, 保证安全, 非白名单IP直接封禁
-iptables -A INPUT -p tcp --dport 59736 -s xx.xx.xx.xx -j ACCEPT
-iptables -A INPUT -p tcp --dport 59736 -j REJECT
+### 快速开始  
+docker部署,
+直接进入compose目录,执行
+```
+docker-compose start
+```
+重启则直接运行
+```
+reload_nginx.sh
 ```
 
 #### 产品实现功能
