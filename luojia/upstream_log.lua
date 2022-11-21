@@ -67,14 +67,14 @@ local function upstream_response()
 
         red:init_pipeline()
         local time_cost = CALC_TIMES_AND_COST_TIME(1, upstream_response_time)
-        red:hincrbyfloat("upstream_all_cost", upstream_addr, time_cost)
+        red:hincrbyfloat(BUILD_UNIQUE_KEY("upstream_all_cost") , upstream_addr, time_cost)
         if upstream_response_time < 10 then
-            red:hincrbyfloat("normal_all_cost", uri, time_cost)
+            red:hincrbyfloat(BUILD_UNIQUE_KEY("normal_all_cost"), uri, time_cost)
         else
-            red:hincrbyfloat("abnormally_all_cost", uri, time_cost)
+            red:hincrbyfloat(BUILD_UNIQUE_KEY("abnormally_all_cost"), uri, time_cost)
         end
 
-        local now_key = string.format("now_record_cost:%d", GET_LAST_HOUR_IDX())
+        local now_key = BUILD_UNIQUE_KEY(string.format("now_record_cost:%d", GET_LAST_HOUR_IDX()))
         red:incrbyfloat(now_key, time_cost)
         red:expire(now_key, 36000)
 
@@ -100,7 +100,6 @@ local function upstream_response()
     end
 
     if ngx.status >= 450 then
-        local times = ngx.shared.cache_dict:incr(upstream_addr .. "fail", 1, 0)
         ngx.shared.cache_dict:set(upstream_addr .. "last_time", ngx.now())
     else
         ngx.shared.cache_dict:set(upstream_addr .. "fail", 0)

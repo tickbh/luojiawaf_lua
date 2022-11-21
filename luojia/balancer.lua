@@ -26,8 +26,6 @@ if not upstream_json then
     return ngx.exit(500)
 end
 
--- ngx.log(ngx.ERR, "check_json == ", from_cache, " ==",  cjson.encode(upstream_json))
-
 local random_list = {}
 local all_list = {}
 for ip, data in pairs(upstream_json) do
@@ -62,13 +60,13 @@ local hash = ngx.crc32_long(key);
 hash = (hash % 2) + 1
 
 local backend = host[math.random(1, #host)]
-local port = 80
+local new_port = 80
 local idx = string.find(backend, ":")
 if idx then
-    port = string.sub(backend, idx + 1, #backend)
+    new_port = tonumber(string.sub(backend, idx + 1, #backend)) or 80 
     backend = string.sub(backend, 1, idx - 1)
 end
-local ok, err = balancer.set_current_peer(backend, port)
+local ok, err = balancer.set_current_peer(backend, new_port)
 if not ok then
     ngx.log(ngx.ERR, "failed to set the current peer: ", err)
     return ngx.exit(500)

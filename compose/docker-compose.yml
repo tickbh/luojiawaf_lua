@@ -9,30 +9,34 @@ services:
   #     - ./store/redis/logs:/logs:rw
   #   expose:
   #     - "6379"
-  redis_db:
-    image: redis
-    container_name: redis-docker
-    command: redis-server /etc/redis/redis.conf
-    volumes:
-      - ./store/redis/:/data:rw
-      - ./../shell/redis/redis.conf:/etc/redis/redis.conf
-      - ./store/redis/logs:/logs:rw
-    ports:
-      - "59736:59736"
+  # redis_db:
+  #   image: redis
+  #   container_name: redis-docker
+  #   command: redis-server /etc/redis/redis.conf
+  #   volumes:
+  #     - ./store/redis/:/data:rw
+  #     - ./../shell/redis/redis.conf:/etc/redis/redis.conf
+  #     - ./store/redis/logs:/logs:rw
+  #   ports:
+  #     - "59736:59736"
 
   waf_server:
     container_name: waf_server-docker        # 指定容器的名称
-    build:
-      context: ../
-      dockerfile: compose/waf/Dockerfile
-    command: 
-      - sh
-      - -c
-      - |
-        /usr/local/openresty/nginx/sbin/nginx
-        /bin/bash -c " while true; do sleep 1; done"
+    # build:
+    #   context: ../
+    #   dockerfile: compose/waf/Dockerfile
+    # command: 
+    #   - sh
+    #   - -c
+    #   - |
+    #     /usr/local/openresty/nginx/sbin/nginx
+    #     /bin/bash -c " while true; do sleep 1; done"
+    image: openresty/openresty
+    # command: /usr/local/openresty/nginx/sbin/nginx
     environment:
         TZ : 'Asia/Shanghai'
+    extra_hosts:
+      - "redis_db:192.168.179.233"
     volumes:
       - ../:/luojia:rw
       - ./luojia.json:/etc/luojia.json:rw

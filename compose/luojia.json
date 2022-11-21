@@ -1,10 +1,10 @@
 {
     "redis": {
         "host": "redis_db",
-        "port": 59736,
-        "password": "luojia59736LUOJIA"
+        "port": 6379,
+        "password": "",
+        "db_index": 10
     },
-    "fw_fb": "/luojia/public/forbidden.sh",
-    "fw_del_fb": "/luojia/public/del_forbidden.sh",
+    "server_id": "1",
     "statis": "/luojia/public/statistics.sh"
 }

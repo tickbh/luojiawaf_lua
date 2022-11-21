@@ -280,7 +280,9 @@ function _M.new(self, opts)
             if type(v) ~= "string" then
                 return nil, '"password" must be a string'
             end
-            password = v
+            if string.len(v) > 0 then
+                password = v    
+            end
         elseif k == "db_index" then
             if type(v) ~= "number" then
                 return nil, '"db_index" must be a number'

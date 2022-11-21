@@ -11,19 +11,27 @@ RECORD_ERROR_STATUS[500] = true
 
 RANDOM_RECORD_VALUE = 100
 
+local may_real_ip_headers = {"X-Forwarded-For", "x-forwarded-for", "luojiawaf_real_ip"}
+
 --Get the client IP
 function GET_CLIENT_IP()
-    CLIENT_IP = ngx.req.get_headers()["X_waf_real_ip"]
-    if CLIENT_IP == nil then
-        CLIENT_IP = ngx.req.get_headers()["X_waf_Forwarded_For"]
+    local client_ip = nil
+    local cjson = require("cjson")
+    ngx.log(ngx.ERR, "header = ", cjson.encode(ngx.req.get_headers()))
+    
+    for _, val in ipairs(may_real_ip_headers) do
+        client_ip = ngx.req.get_headers()[val]
+        if client_ip then
+            return client_ip
+        end
     end
-    if CLIENT_IP == nil then
-        CLIENT_IP  = ngx.var.remote_addr
+    if client_ip == nil then
+        client_ip  = ngx.var.remote_addr
     end
-    if CLIENT_IP == nil then
-        CLIENT_IP  = CLIENT_DEFAULT
+    if client_ip == nil then
+        client_ip  = CLIENT_DEFAULT
     end
-    return CLIENT_IP
+    return client_ip
 end
 
 --Get the client user agent
@@ -33,6 +41,17 @@ function GET_USER_AGENT()
        USER_AGENT = "unknown"
     end
     return USER_AGENT
+end
+
+function OBJECT_TO_STRING(obj)
+    local cjson = require("cjson")
+    return cjson.encode(obj)
+end
+
+function INCR_KEY_VERSION(key)
+    local red = GET_REDIS_CLIENT()
+    local version_key = string.format("version_%s", key)
+    red:incr(version_key, 1)
 end
 
 --Get WAF rule
@@ -54,7 +73,7 @@ function GET_RULE(rulefilename)
     for line in file:lines() do
         line = line:gsub("^%s*(.-)%s*$", "%1")
         if line ~= "" then
-            table.insert(ret_table,line)
+            table.insert(ret_table, line)
         end
     end
     file:close()
@@ -245,6 +264,7 @@ CACHE_STEP = 60
 WHITE_IP_STR = "white_ip_str"
 WHITE_IP_CACHE_TIME = "white_ip_cache"
 CC_ATTACK_CACHE_TIMES_KEY = "cc_attack_cache_times_key"
+SYNC_IP_LAST_TIME_KEY = "sync_ip_last_time"
 
 
 function GET_UPSTREAM_CACHE_KEY(host)
@@ -357,10 +377,12 @@ end
 
 function FORBIDDEN_IP_CHECK()
     if GET_CONFIG_FORBIDDEN_IP() == "on" then
-        local value = ngx.shared.ip_dict:get("f:"..GET_CLIENT_IP())
+        local cleint_ip = GET_CLIENT_IP()
+        local value = ngx.shared.ip_dict:get("f:"..cleint_ip)
+
         if value and string.find(value, "deny") then
             LOG_RECORD('Deny_URL_Args',ngx.var.request_uri,"-","forbidden")
-            ADD_FORBIDDEN_TIME(GET_CLIENT_IP())
+            ADD_FORBIDDEN_TIME(cleint_ip)
             WAF_OUTPUT()
             return true
         elseif value and string.find(value, "captcha") then
@@ -499,18 +521,11 @@ end
 function ADD_FORBIDDEN_TIME(client_ip)
     local cc_fobidden = "cc_fobidden:"..client_ip
     local limit = ngx.shared.limit
-    local now, err = limit:incr(cc_fobidden, 1, 0, 60)
+    local now, _err = limit:incr(cc_fobidden, 1, 0, 60)
     if now > GET_FORBIDDEN_BY_FIREWALL_TIMES() then
-        local command = GET_FW_FB_COMMAND()
-        local shell_cmd = {}
-        shell_cmd[1] = command .. " "
-        shell_cmd[2] = client_ip .. " "
-        shell_cmd[3] = GET_CONFIG_DEFAULT_FORBIDDEN_TIME()
-
-        local ok, stdout, stderr, reason, status =  shell.run(table.concat(shell_cmd), nil, 2000, 4069)
-        if not ok then
-            ngx.log(ngx.ERR,stdout, stderr, reason, status)
-        end
+        local red = GET_REDIS_CLIENT()
+        red:hset("all_ip_changes", client_ip, string.format("add|%d", os.time() + 600))
+        INCR_KEY_VERSION("all_ip_changes")
     end
 
     if GET_CONFIG_FORBIDDEN_RECORD() == "on" then
@@ -519,15 +534,9 @@ function ADD_FORBIDDEN_TIME(client_ip)
 end
 
 function REMOVE_FORBIDDEN(client_ip)
-    local command = GET_FW_DEL_FB_COMMAND()
-    local shell_cmd = {}
-    shell_cmd[1] = command .. " "
-    shell_cmd[2] = client_ip .. " "
-
-    local ok, stdout, stderr, reason, status =  shell.run(table.concat(shell_cmd), nil, 2000, 4069)
-    if not ok then
-        ngx.log(ngx.ERR,stdout, stderr, reason, status)
-    end
+    local cc_fobidden = "cc_fobidden:"..client_ip
+    local red = GET_REDIS_CLIENT()
+    red:del(cc_fobidden)
 end
 
 function LIMIT_IP_CHECK()
@@ -662,18 +671,16 @@ function GET_REDIS_CLIENT()
 end
 
 -- firewall forbidden command
-function GET_FW_FB_COMMAND()
-    return GLOBAL_CONFIG_INFO["fw_fb"]
-end
-
--- firewall delete forbidden command
-function GET_FW_DEL_FB_COMMAND()
-    return GLOBAL_CONFIG_INFO["fw_del_fb"]
-end
-
--- firewall forbidden command
 function GET_STATIS_COMMAND()
     return GLOBAL_CONFIG_INFO["statis"]
+end
+
+function GET_SERVER_ID()
+    return GLOBAL_CONFIG_INFO["server_id"]
+end
+
+function BUILD_UNIQUE_KEY(key)
+    return string.format("server%s:%s", GET_SERVER_ID(), key)
 end
 
 function GET_MATCH_STAR_HOST(host)
